@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Slide Thuyết Trình HTML CSS 3D</title>
+  <link rel="stylesheet" href="Vstyle.css" />
+</head>
+
+<body>
+
+<div class="deck" id="deck">
+
+  <div class="meta">Thuyết trình của TP</div>
+
+  <!-- SLIDE 1 -->
+  <section id="slide1" class="slide active">
+    <h1 class="canva-slide-up">Tiêu đề lớn</h1>
+    <p class="lead canva-fade">Phụ đề / mô tả / thông tin nhóm</p>
+    <div class="nav">
+      <a href="#slide5">⟵</a>
+      <a href="#slide2">⟶</a>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 -->
+  <section id="slide2" class="slide">
+    <h1 class="canva-slide-up">Nội dung 1</h1>
+    <ul class="canva-list">
+      <li style="--d:0s">Ý chính thứ nhất</li>
+      <li style="--d:.1s">Ý chính thứ hai</li>
+      <li style="--d:.2s">Ý chính thứ ba</li>
+    </ul>
+    <div class="nav">
+      <a href="#slide1">⟵</a>
+      <a href="#slide3">⟶</a>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 -->
+  <section id="slide3" class="slide">
+    <h1 class="canva-slide-up">Hình ảnh minh họa</h1>
+    <img src="https://picsum.photos/500" class="demo-img canva-zoom-in">
+    <p class="lead canva-fade">Thêm hình ảnh, biểu đồ, hoặc nội dung mô tả.</p>
+    <div class="nav">
+      <a href="#slide2">⟵</a>
+      <a href="#slide4">⟶</a>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 -->
+  <section id="slide4" class="slide">
+    <h1 class="canva-slide-up">Tổng kết</h1>
+    <p class="lead canva-slide-up">Những điểm quan trọng được rút ra từ bài trình bày.</p>
+    <div class="nav">
+      <a href="#slide3">⟵</a>
+      <a href="#slide5">⟶</a>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 -->
+  <section id="slide5" class="slide">
+    <h1 class="canva-zoom-in">Cảm ơn đã lắng nghe!</h1>
+    <p class="lead canva-fade">TP xin cảm ơn.</p>
+    <div class="nav">
+      <a href="#slide4">⟵</a>
+      <a href="#slide1">⟶</a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('section.slide'));
+let idx = 0;
+
+// RESET ANIMATION MỖI LẦN CHUYỂN SLIDE
+function resetAnimations(slide) {
+  const animEls = slide.querySelectorAll('.canva-fade, .canva-slide-up, .canva-zoom-in, .canva-list li');
+  animEls.forEach(el => {
+    el.style.animation = 'none';
+    void el.offsetWidth; // trigger reflow
+    if (el.classList.contains('canva-fade')) el.style.animation = 'canvaFade 1.2s ease-out forwards';
+    if (el.classList.contains('canva-slide-up')) el.style.animation = 'canvaSlideUp 1.5s ease-out forwards';
+    if (el.classList.contains('canva-zoom-in')) el.style.animation = 'canvaZoomIn 1s ease-out forwards';
+    if (el.tagName === 'LI' && el.parentElement.classList.contains('canva-list')) {
+      el.style.animation = `canvaList 1s ease-out forwards`;
+      el.style.animationDelay = el.style.getPropertyValue('--d') || '0s';
+    }
+  });
+}
+
+// HIỂN THỊ SLIDE VỚI 3D EFFECT + HƯỚNG
+function show(i){
+  const prevSlide = slides[idx];
+  let direction;
+
+  // xác định hướng: next/right = 1, prev/left = -1
+  if (i > idx || (i === 0 && idx === slides.length-1)) direction = 1;
+  else direction = -1;
+
+  slides.forEach(s => s.classList.remove('active'));
+
+  // slide cũ xoay ra theo hướng ngược
+  prevSlide.style.transform = `perspective(1000px) rotateY(${15*direction}deg) scale(0.95)`;
+
+  idx = (i + slides.length) % slides.length;
+  const s = slides[idx];
+  s.classList.add('active');
+
+  // slide mới trượt vào từ hướng đúng
+  s.style.transform = `perspective(1000px) rotateY(${-15*direction}deg) scale(0.95)`;
+  void s.offsetWidth; // force reflow
+  s.style.transform = 'perspective(1000px) rotateY(0deg) scale(1)';
+
+  resetAnimations(s);
+  history.replaceState(null, null, `#${s.id}`); // cập nhật hash nhưng ko scroll
+}
+
+// START từ hash
+const start = window.location.hash 
+  ? slides.findIndex(s => ('#'+s.id) === location.hash) 
+  : 0;
+show(start >= 0 ? start : 0);
+
+// BẤM NÚT NAVIGATION
+document.querySelectorAll('.nav a').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const targetId = link.getAttribute('href').slice(1);
+    const i = slides.findIndex(s => s.id === targetId);
+    if (i >= 0) show(i);
+  });
+});
+
+// PHÍM MŨI TÊN
+window.addEventListener('keydown', e=>{
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { show(idx+1); }
+  if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   { show(idx-1); }
+});
+</script>
+
+</body>
+</html>
